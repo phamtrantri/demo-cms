@@ -1,0 +1,128 @@
+.login-page,
+.login-page * {
+  box-sizing: border-box;
+}
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: url('https://bizweb.dktcdn.net/assets/admin/images/login-background.png')
+    no-repeat center top;
+  /* background-size: contain; */
+}
+.login-page__body {
+  width: 100%;
+  border-radius: 5px;
+  background: url('../../assets/img/login.jpg') no-repeat center top;
+  background-size: contain;
+}
+.login-page__container {
+  height: 100%;
+  width: 100%;
+  padding: 16px;
+  background: white;
+}
+.login-page__logo {
+  width: 200px;
+  margin: 0 auto;
+}
+.login-page__logo img {
+  width: 100%;
+  object-fit: contain;
+}
+.login-page__form {
+  margin-top: 16px;
+}
+.login-page__form-control {
+  margin: 0 auto;
+  margin-bottom: 16px;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
+}
+.login-page__form-control--font-13 {
+  font-size: 13px;
+  margin-bottom: 10px;
+  font-weight: 400;
+}
+.login-page__form-control--align-left {
+  justify-content: flex-start;
+}
+.login-page__form-control-password {
+  width: 100%;
+  position: relative;
+}
+.login-page__form-control-password .login-page__form-input {
+  padding-right: 50px;
+}
+.login-page__toggle-show-password {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(-50%, -50%);
+  line-height: 0;
+  cursor: pointer;
+}
+.login-page__form-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #c4cdd5;
+  border-radius: 3px;
+  font-size: 16px;
+  transition: 0.1s;
+}
+.login-page__form-input:focus {
+  border: 2px solid #08f;
+}
+.login-page__remain-login {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+}
+.login-page__link {
+  font-size: 14px;
+  margin-left: auto;
+  color: #168bf1;
+}
+.login-page__link:hover,
+.login-page__link:active {
+  color: #168bf1;
+  text-decoration: underline;
+}
+
+@media (min-width: 320px) {
+  .login-page {
+    background: none;
+    background-color: #fff;
+  }
+  .login-page__form-control {
+    width: 80%;
+  }
+}
+
+@media (min-width: 576px) {
+  .login-page__form-control {
+    width: 50%;
+  }
+}
+
+@media (min-width: 992px) {
+  .login-page {
+    padding: 16px;
+    background: url('https://bizweb.dktcdn.net/assets/admin/images/login-background.png')
+      no-repeat center top;
+  }
+  .login-page__body {
+    max-width: 900px;
+  }
+  .login-page__container {
+    width: 50%;
+    padding: 48px;
+  }
+  .login-page__form-control {
+    width: 100%;
+  }
+}

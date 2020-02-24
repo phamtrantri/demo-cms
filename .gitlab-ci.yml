@@ -1,0 +1,152 @@
+image: docker:latest
+
+stages:
+  - build
+  - development
+  - production
+  - staging
+
+services:
+  - docker:dind
+
+variables:
+  REPOSITORY_URL: ${REPOSITORY}/${REPO}
+
+before_script:
+  - export SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY_DEV}
+
+.construct_ssh: &construct_ssh # Setup SSH deploy keys
+  - source image_tag
+  - echo $IMAGE_TAG
+  - 'which ssh-agent || ( apk add openssh-client )'
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r'  > ~/.ssh/id_rsa
+  - chmod 400 ~/.ssh/id_rsa
+  - eval $(ssh-agent -s)
+  - ssh-add ~/.ssh/id_rsa
+  - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+
+.build_before_script: &build_before_script
+  - apk add --no-cache curl jq python py-pip
+  - pip install awscli
+  - $(aws ecr get-login --no-include-email --region "${REGION}")
+  - POST_IMAGE_TAG="$(echo $CI_COMMIT_SHA | head -c 8)"
+
+.build_docker: &build_docker
+  - echo $IMAGE_TAG
+  - echo "Pulling and Building and Tagging builder image..."
+  - docker pull $REPOSITORY_URL:builder || true
+  - docker build --target builder --cache-from $REPOSITORY_URL:builder -t $REPOSITORY_URL:builder -f ${DOCKER_PATH} .
+  - echo "Pulling and Building and Tagging runtime image..."
+  - docker pull $REPOSITORY_URL:$LATEST_TAG || true
+  - docker build --cache-from $REPOSITORY_URL:builder --cache-from $REPOSITORY_URL:$LATEST_TAG -t $REPOSITORY_URL:$IMAGE_TAG -t $REPOSITORY_URL:$LATEST_TAG -f ${DOCKER_PATH} .
+  - echo "Pushing image..."
+  - docker push $REPOSITORY_URL:$IMAGE_TAG
+  - docker push $REPOSITORY_URL:$LATEST_TAG
+  - docker push $REPOSITORY_URL:builder
+  - echo "export IMAGE_TAG=$(echo $IMAGE_TAG)\nexport LATEST_TAG=$(echo $LATEST_TAG)" > image_tag
+
+build-dev:
+  stage: build
+  artifacts:
+    paths:
+      - image_tag
+  before_script:
+    - *build_before_script
+    - export DOCKER_PATH=docker/development/Dockerfile
+    - export IMAGE_TAG=dev${POST_IMAGE_TAG}
+    - export LATEST_TAG=dev-latest
+  script:
+    - *build_docker
+  only:
+    - develop
+  when: manual
+
+build-staging:
+  stage: build
+  artifacts:
+    paths:
+      - image_tag
+  before_script:
+    - *build_before_script
+    - export DOCKER_PATH=docker/staging/Dockerfile
+    - export IMAGE_TAG=staging${POST_IMAGE_TAG}
+    - export LATEST_TAG=staging-latest
+  script:
+    - *build_docker
+  only:
+    - staging
+  when: manual
+
+build-prod:
+  stage: build
+  artifacts:
+    paths:
+      - image_tag
+  before_script:
+    - *build_before_script
+    - export DOCKER_PATH=docker/production/Dockerfile
+    - export IMAGE_TAG=prod${POST_IMAGE_TAG}
+    - export LATEST_TAG=prod-latest
+  script:
+    - *build_docker
+  only:
+    - master
+
+deploy-dev:
+  stage: development
+  artifacts:
+    paths:
+      - image_tag
+  script:
+    - *construct_ssh
+    - ssh ${SERVER_DEV} "docker image prune -a -f"
+    - ssh ${SERVER_DEV} "docker stop hospital_cms || true && docker rm hospital_cms || true"
+    - ssh ${SERVER_DEV} "docker pull ${REPOSITORY_URL}:${LATEST_TAG}"
+    - ssh ${SERVER_DEV} "docker run -p 8002:80 -d --name hospital_cms ${REPOSITORY_URL}:${LATEST_TAG}"
+  environment:
+    name: development
+    url: https://dev-hospitals.hospitalsbox.com
+  only:
+    - develop
+  when: manual
+
+deploy-staging:
+  stage: staging
+  artifacts:
+    paths:
+      - image_tag
+  before_script:
+    - export SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY_STAGING}
+  script:
+    - *construct_ssh
+    - ssh ${SERVER_STAGING} "docker image prune -a -f"
+    - ssh ${SERVER_STAGING} "docker stop hospital_cms || true && docker rm hospital_cms || true"
+    - ssh ${SERVER_STAGING} "docker pull ${REPOSITORY_URL}:${LATEST_TAG}"
+    - ssh ${SERVER_STAGING} "docker run -p 8002:80 -d --name hospital_cms --restart on-failure:3 ${REPOSITORY_URL}:${LATEST_TAG}"
+  environment:
+    name: staging
+    url: https://staging-cms-hospitals.hospitalsbox.com
+  only:
+    - staging
+  when: manual
+
+deploy-prod:
+  stage: production
+  artifacts:
+    paths:
+      - image_tag
+  before_script:
+    - export SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY_PROD}
+  script:
+    - *construct_ssh
+    - ssh ${SERVER_PROD} "docker image prune -a -f"
+    - ssh ${SERVER_PROD} "docker stop hospital_cms || true && docker rm hospital_cms || true"
+    - ssh ${SERVER_PROD} "docker pull ${REPOSITORY_URL}:${LATEST_TAG}"
+    - ssh ${SERVER_PROD} "docker run -p 8002:80 -d --name hospital_cms --restart on-failure:3 ${REPOSITORY_URL}:${LATEST_TAG}"
+  environment:
+    name: production
+    url: https://business-benhvienranghammattrunguong.hospitalsbox.com
+  only:
+    - master

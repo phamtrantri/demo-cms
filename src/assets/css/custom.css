@@ -1,0 +1,108 @@
+table thead th,
+table tbody td {
+  white-space: nowrap;
+}
+
+.tooltip {
+  cursor: copy;
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted #eee;
+}
+
+.tooltip .tooltip-text {
+  /* padding: 0px 10px; */
+  visibility: hidden;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 10px;
+  position: absolute;
+  z-index: 1000;
+  bottom: 150%;
+  left: 50%;
+  margin-left: -60px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip .tooltip-text::after {
+  content: '';
+  position: absolute;
+  /* padding: 0px 10px; */
+  top: 100%;
+  left: 20px;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.registration-detail label {
+  color: #787878;
+  font-weight: 700;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px;
+  box-sizing: border-box;
+}
+.col-5 {
+  position: relative;
+  width: 100%;
+  min-height: 1px;
+  padding-right: 15px;
+  padding-left: 15px;
+  flex: 0 0 41.6666666667%;
+  max-width: 41.6666666667%;
+  box-sizing: border-box;
+}
+.col-md-6 {
+  position: relative;
+  width: 100%;
+  min-height: 1px;
+  padding-right: 15px;
+  padding-left: 15px;
+  flex: 0 0 50%;
+  max-width: 50%;
+  box-sizing: border-box;
+}
+.col-7 {
+  position: relative;
+  width: 100%;
+  min-height: 1px;
+  padding-right: 15px;
+  padding-left: 15px;
+  flex: 0 0 58.3333333333%;
+  max-width: 58.3333333333%;
+  box-sizing: border-box;
+}
+
+.col-12 {
+  position: relative;
+  width: 100%;
+  min-height: 1px;
+  padding-right: 15px;
+  padding-left: 15px;
+  flex: 0 0 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* chart */
+/* .ct-label {
+  color: #fff;
+} */
+
+.MuiDialogTitle-root {
+  text-align: center;
+}
